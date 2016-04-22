@@ -4,8 +4,17 @@ export function setEntries(state, entries) {
   return state.set('entries', List(entries));
 }
 
+function getWinners(tally) {
+  const max = tally.max();
+  return tally.filter(val => val === max).keySeq();
+}
+
 export function next(state) {
-  const entries = state.get('entries');
+  const tally = state.getIn(
+    ['vote', 'tally'],
+    Map()
+  );
+  const entries = state.get('entries').concat(getWinners(tally));
   return state.merge({
     vote: Map({pair: entries.take(2)}),
     entries: entries.skip(2)
@@ -13,10 +22,9 @@ export function next(state) {
 }
 
 export function vote(state, entry) {
-  const vote = state.get('vote');
-  const tally = vote.get('tally') || Map();
-  const entryTally = tally.get(entry) || 0;
-  return state.set('vote', vote.merge({
-    tally: tally.set(entry, entryTally + 1)
-  }));
+  return state.updateIn(
+    ['vote', 'tally', entry],
+    0,
+    tally => tally + 1
+  );
 }
