@@ -15,16 +15,20 @@ export function next(state) {
     Map()
   );
   const entries = state.get('entries').concat(getWinners(tally));
-  return state.merge({
-    vote: Map({pair: entries.take(2)}),
-    entries: entries.skip(2)
-  });
+  return entries.count() === 1 ?
+    state.remove('vote').remove('entries').set('winner', entries.first()) :
+    state.merge({
+      vote: Map({pair: entries.take(2)}),
+      entries: entries.skip(2)
+    });
 }
 
-export function vote(state, entry) {
-  return state.updateIn(
-    ['vote', 'tally', entry],
+export function vote(voteState, entry) {
+  return voteState.updateIn(
+    ['tally', entry],
     0,
     tally => tally + 1
   );
 }
+
+export const INITIAL_STATE = Map();
